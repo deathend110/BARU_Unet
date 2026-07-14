@@ -1,27 +1,62 @@
 # 仓库协作规则
 
-本文件用于约束 Codex 在本仓库中的默认协作方式。
-
 ## 代码编写规则
 
-1. 在用户没有明确要求“写代码”“修改代码”“实现功能”“修复问题”之前，默认不主动编写或修改代码。
-2. 当确实需要输出代码时，应尽量附带合理的中文注释。
+1. 用户没有明确要求时，不主动编写或修改代码。
+2. 输出代码时关键步骤、核心变量或不直观的设计意图加中文注释，不添加逐行注释噪声。
+3. 每次改动优先 `git commit` 并用明确的中文说明改动内容。
 
-## 注释要求
+---
 
-1. 中文注释应说明关键步骤、核心变量或不直观的设计意图。
-2. 不添加无意义的逐行注释，避免注释噪声。
-3. 新增或修改的代码，优先保持注释风格一致。
+## 仓库结构
 
-## 执行约定
+- **`training/`** — 统一训练框架入口。所有训练命令从该目录执行。
+- **`data/`** — 数据集目录，与 `training/` 同级。
+- **`z_paper/`** — 论文 PDF，参考用。
+- **`模型区分.md`** — 模型对比表。
+- **`training/Denoising/`、`training/Deraining/`、`training/Defocus_Deblurring/`** — 原始 KBNet 遗留目录，统一框架中不使用。
 
-1. 在开始代码修改前，先确认用户已明确提出代码编写或修改需求。
-2. 如果当前任务主要是分析、解释、实验设计或结果讨论，则优先提供分析结论，而不是直接写代码。
-3. 本仓库默认不使用 `git worktree`；所有修改直接在当前工作区内完成。
-4. 每次完成代码或文档改动后，优先对应提交一次 `git commit`，并用明确的中文说明本次改动内容。
+---
 
+## 安装
 
-## 编码约定
+```bash
+cd training
+pip install -r requirements.txt
+pip install -e . --no_cuda_ext
+```
 
-1. 阅读文件用UTF-8编码
+必须带 `--no_cuda_ext` 跳过 CUDA kernel 编译（当前 5 个模型均不需要 deform_conv / fused_act 等自定义 CUDA op）。
 
+---
+
+## 训练
+
+所有模型通过同一入口，YAML 切换：
+
+```bash
+cd training
+python basicsr/train.py -opt options/train/MixUpsample/HINet.yml
+```
+
+YAML 位于 `training/options/train/MixUpsample/`，共 6 个（HINet / KBNet_s / KBNet_l / MIRNetv2 / NAFNet / SCUNet）。
+
+关键细节：
+- **Arch 自动注册**：`basicsr/models/archs/*_arch.py` 放进去即可，无需手动 import。
+- **自动恢复**：检测到 `experiments/{name}/training_states/` 后自动 resume。
+- **多 GPU**：加 `--launcher pytorch` 和 `torch.distributed.launch`。
+
+---
+
+## 数据集特殊性
+
+- 文件名含 `_H_`/`_L_` 后缀（`xxx_H_TR.png` ↔ `xxx_L_TR.png`），YAML 中必须加 `pair_by_index: true`。
+- 灰度 PNG 被 `cv2.IMREAD_COLOR` 自动转为 3 通道 BGR，模型均保持 `in_chn=3`。
+
+---
+
+## 新增模型
+
+1. 将 `.py` 放入 `training/basicsr/models/archs/`，文件名必须以 `_arch.py` 结尾。
+2. `training/options/train/MixUpsample/` 下新增对应 YAML。
+3. 如引入新依赖，更新 `training/requirements.txt`。
