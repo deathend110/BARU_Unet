@@ -72,6 +72,8 @@ class ImageCleanModel(BaseModel):
         #     self.load_network(self.net_g, load_path,
         #                       self.opt['path'].get('strict_load_g', True), param_key=self.opt['path'].get('param_key', 'params'))
 
+        self.scaler = torch.amp.GradScaler('cuda')
+
         if self.is_train:
             self.init_training_settings()
 
@@ -148,24 +150,26 @@ class ImageCleanModel(BaseModel):
 
     def optimize_parameters(self, current_iter):
         self.optimizer_g.zero_grad()
-        preds = self.net_g(self.lq)
-        if not isinstance(preds, list):
-            preds = [preds]
 
-        self.output = preds[-1]
+        with torch.amp.autocast(device_type='cuda', dtype=torch.float16):
+            preds = self.net_g(self.lq)
+            if not isinstance(preds, list):
+                preds = [preds]
 
-        loss_dict = OrderedDict()
-        # pixel loss
-        l_pix = 0.
-        for pred in preds:
-            l_pix += self.cri_pix(pred, self.gt)
+            self.output = preds[-1]
 
-        loss_dict['l_pix'] = l_pix
+            loss_dict = OrderedDict()
+            l_pix = 0.
+            for pred in preds:
+                l_pix += self.cri_pix(pred, self.gt)
+            loss_dict['l_pix'] = l_pix
 
-        l_pix.backward()
+        self.scaler.scale(l_pix).backward()
         if self.opt['train']['use_grad_clip']:
+            self.scaler.unscale_(self.optimizer_g)
             torch.nn.utils.clip_grad_norm_(self.net_g.parameters(), 0.01)
-        self.optimizer_g.step()
+        self.scaler.step(self.optimizer_g)
+        self.scaler.update()
 
         self.log_dict = self.reduce_loss_dict(loss_dict)
 
