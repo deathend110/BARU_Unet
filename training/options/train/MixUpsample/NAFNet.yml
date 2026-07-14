@@ -16,7 +16,7 @@ datasets:
     geometric_augs: true
     gt_size: 256
     use_shuffle: true
-    num_worker_per_gpu: 4
+    num_worker_per_gpu: 2
     batch_size_per_gpu: 8
     mini_batch_sizes: [8]
     iters: [100000]
