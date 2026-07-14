@@ -73,6 +73,9 @@ class ImageCleanModel(BaseModel):
         #                       self.opt['path'].get('strict_load_g', True), param_key=self.opt['path'].get('param_key', 'params'))
 
         self.scaler = torch.amp.GradScaler('cuda')
+        logger = get_root_logger()
+        logger.info(f'AMP: enabled={self.scaler.is_enabled()}, '
+                    f'autocast(device=cuda, dtype={torch.get_autocast_dtype("cuda")})')
 
         if self.is_train:
             self.init_training_settings()
