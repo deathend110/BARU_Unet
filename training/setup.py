@@ -10,26 +10,22 @@ import torch
 from torch.utils.cpp_extension import (BuildExtension, CppExtension,
                                        CUDAExtension)
 
-version_file = 'basicsr/version.py'
+HERE = os.path.dirname(os.path.abspath(__file__))
+version_file = os.path.join(HERE, 'basicsr/version.py')
 
 
 def readme():
     return ''
-    # with open('README.md', encoding='utf-8') as f:
-    #     content = f.read()
-    # return content
 
 
 def get_git_hash():
 
     def _minimal_ext_cmd(cmd):
-        # construct minimal environment
         env = {}
         for k in ['SYSTEMROOT', 'PATH', 'HOME']:
             v = os.environ.get(k)
             if v is not None:
                 env[k] = v
-        # LANGUAGE is used on win32
         env['LANGUAGE'] = 'C'
         env['LANG'] = 'C'
         env['LC_ALL'] = 'C'
@@ -69,7 +65,8 @@ short_version = '{}'
 version_info = ({})
 """
     sha = get_hash()
-    with open('VERSION', 'r') as f:
+    version_txt = os.path.join(HERE, 'VERSION')
+    with open(version_txt, 'r') as f:
         SHORT_VERSION = f.read().strip()
     VERSION_INFO = ', '.join(
         [x if x.isdigit() else f'"{x}"' for x in SHORT_VERSION.split('.')])
@@ -82,9 +79,12 @@ version_info = ({})
 
 
 def get_version():
+    if not os.path.exists(version_file):
+        write_version_py()
+    loc = {}
     with open(version_file, 'r') as f:
-        exec(compile(f.read(), version_file, 'exec'))
-    return locals()['__version__']
+        exec(compile(f.read(), version_file, 'exec'), loc)
+    return loc['__version__']
 
 
 def make_cuda_ext(name, module, sources, sources_cuda=None):
@@ -108,23 +108,21 @@ def make_cuda_ext(name, module, sources, sources_cuda=None):
 
     return extension(
         name=f'{module}.{name}',
-        sources=[os.path.join(*module.split('.'), p) for p in sources],
+        sources=[os.path.join(HERE, *module.split('.'), p) for p in sources],
         define_macros=define_macros,
         extra_compile_args=extra_compile_args)
 
 
 def get_requirements(filename='requirements.txt'):
     return []
-    here = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(here, filename), 'r') as f:
-        requires = [line.replace('\n', '') for line in f.readlines()]
-    return requires
 
 
 if __name__ == '__main__':
     if '--no_cuda_ext' in sys.argv:
         ext_modules = []
         sys.argv.remove('--no_cuda_ext')
+    elif not os.path.isdir(os.path.join(HERE, 'basicsr', 'models', 'ops')):
+        ext_modules = []
     else:
         ext_modules = [
             make_cuda_ext(
