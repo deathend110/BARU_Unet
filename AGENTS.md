@@ -37,7 +37,7 @@ pip install -e . --no_cuda_ext
 
 ```bash
 cd training
-python basicsr/train.py -opt options/train/MixUpsample/HINet.yml
+python -m basicsr.train -opt options/train/MixUpsample/HINet.yml
 ```
 
 YAML 位于 `training/options/train/MixUpsample/`，共 6 个（HINet / KBNet_s / KBNet_l / MIRNetv2 / NAFNet / SCUNet）。
