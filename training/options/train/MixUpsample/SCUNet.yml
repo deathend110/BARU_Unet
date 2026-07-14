@@ -8,8 +8,8 @@ datasets:
   train:
     name: MixUpsample_train
     type: Dataset_PairedImage
-    dataroot_gt: ../../data/MixUpsample_Dataset_R2A2_256/train/H
-    dataroot_lq: ../../data/MixUpsample_Dataset_R2A2_256/train/L
+    dataroot_gt: ../data/MixUpsample_Dataset_R2A2_256/train/H
+    dataroot_lq: ../data/MixUpsample_Dataset_R2A2_256/train/L
     io_backend:
       type: disk
     pair_by_index: true
@@ -26,8 +26,8 @@ datasets:
   val:
     name: MixUpsample_test
     type: Dataset_PairedImage
-    dataroot_gt: ../../data/MixUpsample_Dataset_R2A2_256/test/H
-    dataroot_lq: ../../data/MixUpsample_Dataset_R2A2_256/test/L
+    dataroot_gt: ../data/MixUpsample_Dataset_R2A2_256/test/H
+    dataroot_lq: ../data/MixUpsample_Dataset_R2A2_256/test/L
     io_backend:
       type: disk
     pair_by_index: true
