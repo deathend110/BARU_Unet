@@ -79,18 +79,18 @@ data/MixUpsample_Dataset_R2A2_256/
 ```bash
 cd training
 
-python basicsr/train.py -opt options/train/MixUpsample/HINet.yml
-python basicsr/train.py -opt options/train/MixUpsample/KBNet_s.yml
-python basicsr/train.py -opt options/train/MixUpsample/KBNet_l.yml
-python basicsr/train.py -opt options/train/MixUpsample/MIRNetv2.yml
-python basicsr/train.py -opt options/train/MixUpsample/NAFNet.yml
-python basicsr/train.py -opt options/train/MixUpsample/SCUNet.yml
+python -m basicsr.train -opt options/train/MixUpsample/HINet.yml
+python -m basicsr.train -opt options/train/MixUpsample/KBNet_s.yml
+python -m basicsr.train -opt options/train/MixUpsample/KBNet_l.yml
+python -m basicsr.train -opt options/train/MixUpsample/MIRNetv2.yml
+python -m basicsr.train -opt options/train/MixUpsample/NAFNet.yml
+python -m basicsr.train -opt options/train/MixUpsample/SCUNet.yml
 ```
 
 ### 多 GPU
 
 ```bash
-python -m torch.distributed.launch --nproc_per_node=4 basicsr/train.py \
+python -m torch.distributed.launch --nproc_per_node=4 -m basicsr.train \
     -opt options/train/MixUpsample/HINet.yml --launcher pytorch
 ```
 
