@@ -6,9 +6,7 @@ import os
 import subprocess
 import sys
 import time
-import torch
-from torch.utils.cpp_extension import (BuildExtension, CppExtension,
-                                       CUDAExtension)
+# import torch 推迟到 make_cuda_ext 内部，避免 pip 解析 metadata 时加载
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 version_file = os.path.join(HERE, 'basicsr/version.py')
@@ -88,6 +86,9 @@ def get_version():
 
 
 def make_cuda_ext(name, module, sources, sources_cuda=None):
+    import torch
+    from torch.utils.cpp_extension import CppExtension, CUDAExtension
+
     if sources_cuda is None:
         sources_cuda = []
     define_macros = []
@@ -114,7 +115,8 @@ def make_cuda_ext(name, module, sources, sources_cuda=None):
 
 
 def get_requirements(filename='requirements.txt'):
-    return []
+    with open(filename) as f:
+        return [line.strip() for line in f if line.strip() and not line.startswith('#')]
 
 
 if __name__ == '__main__':
@@ -167,8 +169,6 @@ if __name__ == '__main__':
             'Programming Language :: Python :: 3.8',
         ],
         license='Apache License 2.0',
-        setup_requires=['cython', 'numpy'],
         install_requires=get_requirements(),
         ext_modules=ext_modules,
-        cmdclass={'build_ext': BuildExtension},
         zip_safe=False)
