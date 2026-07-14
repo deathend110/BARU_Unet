@@ -53,7 +53,7 @@ train:
     type: CosineAnnealingRestartCyclicLR
     periods: [100000]
     restart_weights: [1]
-    eta_mins: [1e-7]
+    eta_mins: [!!float 1e-7]
   mixing_augs:
     mixup: false
   optim_g:
