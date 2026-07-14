@@ -18,7 +18,7 @@ datasets:
     use_shuffle: true
     num_worker_per_gpu: 0
     batch_size_per_gpu: 2
-    mini_batch_sizes: [8]
+    mini_batch_sizes: [2]
     iters: [60000]
     gt_sizes: [256]
     dataset_enlarge_ratio: 1
