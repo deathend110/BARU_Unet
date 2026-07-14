@@ -96,17 +96,14 @@ python -m torch.distributed.launch --nproc_per_node=4 -m basicsr.train \
 
 ### 双卡跑两个不同模型
 
-Kaggle 等双卡环境，每张卡各跑一个模型：
+Kaggle 等双卡环境，每张卡各跑一个模型：`%%bash`魔法命令作用是让整个nb块都是bash命令输入
 
 ```bash
-cd training
-
-CUDA_VISIBLE_DEVICES=0 python -m basicsr.train \
-    -opt options/train/MixUpsample/NAFNet.yml &
-CUDA_VISIBLE_DEVICES=1 python -m basicsr.train \
-    -opt options/train/MixUpsample/SCUNet.yml &
-
+%%bash
+CUDA_VISIBLE_DEVICES=0 python -m basicsr.train -opt options/train/MixUpsample/NAFNet.yml > nafnet_train.log 2>&1 &
+CUDA_VISIBLE_DEVICES=1 python -m basicsr.train -opt options/train/MixUpsample/SCUNet.yml > scunet_train.log 2>&1 &
 wait
+echo "All training tasks finished."
 ```
 
 如需后台防断连：

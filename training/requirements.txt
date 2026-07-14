@@ -8,3 +8,4 @@ lmdb
 natsort
 einops
 timm
+thop
