@@ -13,6 +13,7 @@ loss_module = importlib.import_module('basicsr.models.losses')
 metric_module = importlib.import_module('basicsr.metrics')
 
 import os
+import contextlib
 import random
 import numpy as np
 import cv2
@@ -72,10 +73,34 @@ class ImageCleanModel(BaseModel):
         #     self.load_network(self.net_g, load_path,
         #                       self.opt['path'].get('strict_load_g', True), param_key=self.opt['path'].get('param_key', 'params'))
 
-        self.scaler = torch.amp.GradScaler('cuda')
+        # AMP 精度配置驱动：bf16 / fp16 / fp32(none)，并按 GPU 能力回退
+        amp_cfg = self.opt['train'].get('amp_dtype', 'fp16').lower()
+        self.grad_clip_max_norm = self.opt['train'].get('grad_clip_max_norm', 0.01)
+        capability = torch.cuda.get_device_capability()
+        bf16_ok = capability[0] >= 8  # Ampere(8.x) 及以上原生支持 BF16
         logger = get_root_logger()
-        logger.info(f'AMP: enabled={self.scaler.is_enabled()}, '
-                    f'autocast(device=cuda, dtype={torch.get_autocast_dtype("cuda")})')
+        if amp_cfg == 'bfloat16':
+            if bf16_ok:
+                self.amp_dtype = torch.bfloat16
+                self.scaler = None  # BF16 动态范围等同 FP32，无需 GradScaler
+                logger.info('AMP: bfloat16 enabled (GPU supports BF16), GradScaler disabled')
+            else:
+                self.amp_dtype = None
+                self.scaler = None
+                logger.warning('amp_dtype=bfloat16 but GPU (Turing/older, CC %s) does NOT '
+                               'support BF16; falling back to FP32 (AMP disabled).' % str(capability))
+        elif amp_cfg == 'float16':
+            self.amp_dtype = torch.float16
+            self.scaler = torch.amp.GradScaler('cuda')
+            logger.info('AMP: float16 enabled with GradScaler')
+        elif amp_cfg in ('fp32', 'none'):
+            self.amp_dtype = None
+            self.scaler = None
+            logger.info('AMP: disabled, training in FP32')
+        else:
+            self.amp_dtype = torch.float16
+            self.scaler = torch.amp.GradScaler('cuda')
+            logger.warning(f'Unknown amp_dtype={amp_cfg!r}; defaulting to float16+GradScaler')
 
         if self.is_train:
             self.init_training_settings()
@@ -154,7 +179,10 @@ class ImageCleanModel(BaseModel):
     def optimize_parameters(self, current_iter):
         self.optimizer_g.zero_grad()
 
-        with torch.amp.autocast(device_type='cuda', dtype=torch.float16):
+        # BF16/FP16 用 autocast；FP32(none) 用 nullcontext 保持纯精度
+        amp_ctx = (torch.amp.autocast(device_type='cuda', dtype=self.amp_dtype)
+                   if self.amp_dtype is not None else contextlib.nullcontext())
+        with amp_ctx:
             preds = self.net_g(self.lq)
             if not isinstance(preds, list):
                 preds = [preds]
@@ -167,12 +195,23 @@ class ImageCleanModel(BaseModel):
                 l_pix += self.cri_pix(pred, self.gt)
             loss_dict['l_pix'] = l_pix
 
-        self.scaler.scale(l_pix).backward()
+        if self.scaler is not None:
+            self.scaler.scale(l_pix).backward()  # 仅 FP16 路径
+        else:
+            l_pix.backward()                      # BF16 / FP32 直接反向
+
         if self.opt['train']['use_grad_clip']:
-            self.scaler.unscale_(self.optimizer_g)
-            torch.nn.utils.clip_grad_norm_(self.net_g.parameters(), 0.01)
-        self.scaler.step(self.optimizer_g)
-        self.scaler.update()
+            if self.scaler is not None:
+                self.scaler.unscale_(self.optimizer_g)
+            # P2：max_norm 由硬编码 0.01 改为配置项（HINet 设为 1.0）
+            torch.nn.utils.clip_grad_norm_(self.net_g.parameters(),
+                                           max_norm=self.grad_clip_max_norm)
+
+        if self.scaler is not None:
+            self.scaler.step(self.optimizer_g)
+            self.scaler.update()
+        else:
+            self.optimizer_g.step()
 
         self.log_dict = self.reduce_loss_dict(loss_dict)
 
