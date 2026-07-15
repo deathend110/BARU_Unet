@@ -41,9 +41,9 @@ network_g:
   hin_position_right: 4
 
 path:
-  pretrain_network_g: ~
-  strict_load_g: true
-  resume_state: ~
+  pretrain_network_g: ~       # 生成器 net_g 的预训练权重 .pth 路径
+  strict_load_g: true         # 加载 net_g 权重时是否严格匹配（torch.load_state_dict 的 strict 参数）
+  resume_state: ~             # 训练状态文件 .state 的路径
 
 train:
   total_iter: 60000
