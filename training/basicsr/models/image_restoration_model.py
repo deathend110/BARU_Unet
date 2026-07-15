@@ -68,10 +68,10 @@ class ImageCleanModel(BaseModel):
         self.print_network(self.net_g)
 
         # load pretrained models
-        # load_path = self.opt['path'].get('pretrain_network_g', None)
-        # if load_path is not None:
-        #     self.load_network(self.net_g, load_path,
-        #                       self.opt['path'].get('strict_load_g', True), param_key=self.opt['path'].get('param_key', 'params'))
+        load_path = self.opt['path'].get('pretrain_network_g', None)
+        if load_path is not None:
+            self.load_network(self.net_g, load_path,
+                              self.opt['path'].get('strict_load_g', True), param_key=self.opt['path'].get('param_key', 'params'))
 
         # AMP 精度配置驱动：bf16 / fp16 / fp32(none)，并按 GPU 能力回退
         amp_cfg = self.opt['train'].get('amp_dtype', 'fp16').lower()
