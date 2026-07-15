@@ -38,7 +38,8 @@ def parse(opt_path, is_train=True):
     Returns:
         (dict): Options.
     """
-    with open(opt_path, mode='r') as f:
+    # Windows 默认编码为 GBK，含中文注释的 UTF-8 配置会被误读，故显式指定 utf-8-sig
+    with open(opt_path, mode='r', encoding='utf-8-sig') as f:
         Loader, _ = ordered_yaml()
         opt = yaml.load(f, Loader=Loader)
 
