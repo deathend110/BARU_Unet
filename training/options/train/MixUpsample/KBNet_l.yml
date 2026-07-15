@@ -53,6 +53,7 @@ train:
   total_iter: 100000
   warmup_iter: -1
   use_grad_clip: true
+  amp_dtype: float16          # FP16+GradScaler（Turing/T4 不支持 BF16）
   scheduler:
     type: CosineAnnealingRestartCyclicLR
     periods: [100000]
