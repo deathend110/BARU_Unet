@@ -17,9 +17,9 @@ datasets:
     gt_size: 256
     use_shuffle: true
     num_worker_per_gpu: 0
-    batch_size_per_gpu: 2
-    mini_batch_sizes: [2]
-    iters: [60000]
+    batch_size_per_gpu: 1      # 3050Ti 4GB：bs=2 易 OOM，降到 1（结构不变，参数仅 ~5.5M）
+    mini_batch_sizes: [1]       # 与 batch_size_per_gpu 保持一致，避免加载 2 张再丢弃
+    iters: [120000]
     gt_sizes: [256]
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
@@ -54,6 +54,7 @@ train:
   total_iter: 60000
   warmup_iter: -1
   use_grad_clip: true
+  grad_clip_max_norm: 1.0      # 放宽裁剪阈值（默认 0.01 过小会裁死梯度、丧失自我修正能力），bs=1 下更需放宽
   amp_dtype: bfloat16          # BF16（Ampere 3050Ti，动态范围等同 FP32，无 GradScaler）
   scheduler:
     type: CosineAnnealingRestartCyclicLR
