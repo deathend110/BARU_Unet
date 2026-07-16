@@ -19,7 +19,7 @@ datasets:
     num_worker_per_gpu: 0
     batch_size_per_gpu: 1      # 3050Ti 4GB：bs=2 在 bf16 下仍约 4GiB，临界易 OOM，降到 1
     mini_batch_sizes: [1]       # 与 batch_size_per_gpu 保持一致，避免加载 2 张再丢弃
-    iters: [100000]
+    iters: [200000]             # bs 由 2 降为 1，iter 倍增至 2 倍以维持 20 万总样本量，与 NAFNet 对齐
     gt_sizes: [256]
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
@@ -44,14 +44,14 @@ path:
   resume_state: ~
 
 train:
-  total_iter: 100000
+  total_iter: 200000           # 与 iters 同步倍增，维持 20 万总样本量
   warmup_iter: -1
   use_grad_clip: true
   grad_clip_max_norm: 1.0      # 放宽裁剪阈值（默认 0.01 过小会裁死梯度、丧失自我修正能力），bs=1 下更需放宽
   amp_dtype: bfloat16          # BF16（Ampere 3050Ti，动态范围等同 FP32，无 GradScaler）
   scheduler:
     type: CosineAnnealingRestartCyclicLR
-    periods: [100000]
+    periods: [200000]          # 与 total_iter 对齐，保持单段余弦退火（不中途重启 LR）
     restart_weights: [1]
     eta_mins: [!!float 1e-7]
   mixing_augs:
