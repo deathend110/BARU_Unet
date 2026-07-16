@@ -84,7 +84,7 @@ val:
 
 logger:
   print_freq: 200
-  save_checkpoint_freq: !!float 2e3
+  save_checkpoint_freq: !!float 5e3      # iter 倍增后降低保存频率，约每 5000 步存一次，控制 checkpoint 数量
   use_tb_logger: true
   wandb:
     project: ~
