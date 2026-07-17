@@ -5,6 +5,7 @@ import torch.nn.functional as F
 
 class LayerNormFunction(torch.autograd.Function):
     @staticmethod
+    @torch.amp.custom_fwd(device_type='cuda')
     def forward(ctx, x, weight, bias, eps):
         ctx.eps = eps
         N, C, H, W = x.size()
@@ -19,11 +20,11 @@ class LayerNormFunction(torch.autograd.Function):
         return y
 
     @staticmethod
+    @torch.amp.custom_bwd(device_type='cuda')
     def backward(ctx, grad_output):
         eps = ctx.eps
 
         N, C, H, W = grad_output.size()
-        # y, var, weight = ctx.saved_variables
         y, var, weight = ctx.saved_tensors
         g = grad_output * weight.view(1, C, 1, 1)
         mean_g = g.mean(dim=1, keepdim=True)
@@ -55,6 +56,7 @@ class SimpleGate(nn.Module):
 class KBAFunction(torch.autograd.Function):
 
     @staticmethod
+    @torch.amp.custom_fwd(device_type='cuda')
     def forward(ctx, x, att, selfk, selfg, selfb, selfw):
         B, nset, H, W = att.shape
         KK = selfk ** 2
@@ -81,6 +83,7 @@ class KBAFunction(torch.autograd.Function):
         return x
 
     @staticmethod
+    @torch.amp.custom_bwd(device_type='cuda')
     def backward(ctx, grad_output):
         x, att, selfb, selfw = ctx.x, ctx.att, ctx.selfb, ctx.selfw
         selfk, selfg, selfc, KK, nset = ctx.selfk, ctx.selfg, ctx.selfc, ctx.KK, ctx.nset
