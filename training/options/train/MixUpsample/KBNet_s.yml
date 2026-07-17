@@ -16,7 +16,7 @@ datasets:
     geometric_augs: true
     gt_size: 256
     use_shuffle: true
-    num_worker_per_gpu: 8          # 适配 4090 主机多核 CPU
+    num_worker_per_gpu: 4          # 适配 4090 主机多核 CPU
     batch_size_per_gpu: 6         # 4090 24GB：batch 2→6（3×）；KBNet_s 的 KBA 核张量随通道平方增长，8 偏极限
     mini_batch_sizes: [6]         # 单阶段，须与 batch 保持一致
     iters: [20000]                # 须等于 total_iter（渐进阶段边界）
