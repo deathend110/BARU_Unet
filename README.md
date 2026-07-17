@@ -85,6 +85,9 @@ python -m basicsr.train -opt options/train/MixUpsample/KBNet_l.yml
 python -m basicsr.train -opt options/train/MixUpsample/MIRNetv2.yml
 python -m basicsr.train -opt options/train/MixUpsample/NAFNet.yml
 python -m basicsr.train -opt options/train/MixUpsample/SCUNet.yml
+
+# 指定GPU
+CUDA_VISIBLE_DEVICES=3 python -m basicsr.train -opt options/train/MixUpsample/KBNet_l.yml
 ```
 
 ### 多 GPU（单模型多卡）
