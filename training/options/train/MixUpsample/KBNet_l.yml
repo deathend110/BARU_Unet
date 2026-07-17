@@ -17,9 +17,9 @@ datasets:
     gt_size: 256
     use_shuffle: true
     num_worker_per_gpu: 4          # 适配 4090 主机多核 CPU
-    batch_size_per_gpu: 3          # 4090 24GB：KBNet_l 激活大，batch 4 会 OOM，取 3
-    mini_batch_sizes: [3]          # 单阶段，须与 batch 保持一致
-    iters: [66667]                 # 须等于 total_iter（渐进阶段边界）
+    batch_size_per_gpu: 2          # 4090 24GB：KBNet_l 激活大，batch 2 稳定
+    mini_batch_sizes: [2]          # 单阶段，须与 batch 保持一致
+    iters: [100000]                # 须等于 total_iter（渐进阶段边界）
     gt_sizes: [256]
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
@@ -50,20 +50,20 @@ path:
   resume_state: ~
 
 train:
-  total_iter: 66667           # 200000样本÷batch3，保持数据集遍历=42.5 epoch
+  total_iter: 100000          # 200000样本÷batch2，保持数据集遍历=42.5 epoch
   warmup_iter: -1
   use_grad_clip: true
   amp_dtype: bfloat16         # 4090(Ada) 原生支持 BF16，无 GradScaler 溢出风险
   scheduler:
     type: CosineAnnealingRestartCyclicLR
-    periods: [66667]          # 须等于 total_iter
+    periods: [100000]          # 须等于 total_iter
     restart_weights: [1]
     eta_mins: [!!float 1e-7]
   mixing_augs:
     mixup: false
   optim_g:
     type: AdamW
-    lr: !!float 2.45e-4          # sqrt 缩放：2e-4 × √(3/2)（batch 2→3）
+    lr: !!float 2e-4             # batch=2 base lr，与原始设计一致
     weight_decay: !!float 1e-4
     betas: [0.9, 0.999]
   pixel_opt:
@@ -72,7 +72,7 @@ train:
     reduction: mean
 
 val:
-  val_freq: !!float 650       # ~保持约100次验证
+  val_freq: !!float 975       # ~保持约103次验证（与 batch=3 等价）
   save_img: false
   rgb2bgr: true
   use_image: false
@@ -88,8 +88,8 @@ val:
       test_y_channel: false
 
 logger:
-  print_freq: 130
-  save_checkpoint_freq: !!float 1300    # 保持约50次存档
+  print_freq: 195
+  save_checkpoint_freq: !!float 1950    # 保持约51次存档（与 batch=3 等价）
   use_tb_logger: true
   wandb:
     project: ~
