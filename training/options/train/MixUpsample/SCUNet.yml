@@ -1,4 +1,4 @@
-name: SCUNet-MixUpsample
+name: SCUNet-MixUpsample-Controlled-S42
 model_type: ImageCleanModel
 scale: 1
 num_gpu: 1
@@ -35,7 +35,7 @@ datasets:
 network_g:
   type: SCUNet
   in_nc: 3
-  config: [4, 4, 4, 4, 4, 4, 4]
+  config: [3, 3, 3, 3, 3, 3, 3]
   dim: 64
 
 path:
@@ -45,9 +45,10 @@ path:
 
 train:
   total_iter: 100000
-  warmup_iter: -1
+  warmup_iter: 2000
   use_grad_clip: true
-  amp_dtype: float16          # FP16+GradScaler（Turing/T4 不支持 BF16）
+  amp_dtype: bfloat16         # 受控基准统一使用 BF16
+  grad_clip_max_norm: 1.0     # 五个模型统一梯度裁剪阈值
   scheduler:
     type: CosineAnnealingRestartCyclicLR
     periods: [100000]
@@ -66,7 +67,7 @@ train:
     reduction: mean
 
 val:
-  val_freq: !!float 1e3
+  val_freq: !!float 5e3
   save_img: false
   rgb2bgr: true
   use_image: false
@@ -83,7 +84,7 @@ val:
 
 logger:
   print_freq: 200
-  save_checkpoint_freq: !!float 2e3
+  save_checkpoint_freq: !!float 5e3
   use_tb_logger: true
   wandb:
     project: ~

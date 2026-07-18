@@ -1,4 +1,4 @@
-name: KBNet_s-MixUpsample
+name: KBNet_s-MixUpsample-Controlled-S42
 model_type: ImageCleanModel
 scale: 1
 num_gpu: 1
@@ -17,9 +17,9 @@ datasets:
     gt_size: 256
     use_shuffle: true
     num_worker_per_gpu: 8          # 适配 4090 主机多核 CPU
-    batch_size_per_gpu: 6         # 4090 24GB：batch 2→6（3×）；KBNet_s 的 KBA 核张量随通道平方增长，8 偏极限
+    batch_size_per_gpu: 6
     mini_batch_sizes: [6]         # 单阶段，须与 batch 保持一致
-    iters: [20000]                # 须等于 total_iter（渐进阶段边界）
+    iters: [33340]                # batch 6，共曝光 200040 个样本
     gt_sizes: [256]
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
@@ -35,10 +35,12 @@ datasets:
 network_g:
   type: KBNet_s
   img_channel: 3
-  width: 64
+  width: 16
   middle_blk_num: 12
   enc_blk_nums: [2, 2, 4, 8]
   dec_blk_nums: [2, 2, 2, 2]
+  lightweight: true
+  ffn_scale: 1.5
 
 path:
   pretrain_network_g: ~
@@ -46,13 +48,14 @@ path:
   resume_state: ~
 
 train:
-  total_iter: 20000           # batch 6× → 迭代数÷3，保持数据集遍历=25.5 epoch（60000×2/6）
-  warmup_iter: -1
+  total_iter: 33340           # 与其余模型对齐约 20 万样本曝光
+  warmup_iter: 667            # 总训练进度的约 2%
   use_grad_clip: true
-  amp_dtype: bfloat16         # 4090(Ada) 原生支持 BF16，无 GradScaler 溢出风险
+  amp_dtype: bfloat16         # 受控基准统一使用 BF16
+  grad_clip_max_norm: 1.0     # 五个模型统一梯度裁剪阈值
   scheduler:
     type: CosineAnnealingRestartCyclicLR
-    periods: [20000]          # 须等于 total_iter
+    periods: [33340]          # 须等于 total_iter
     restart_weights: [1]
     eta_mins: [!!float 1e-7]
   mixing_augs:
@@ -68,7 +71,7 @@ train:
     reduction: mean
 
 val:
-  val_freq: !!float 200       # ~100 次验证（total_iter/100）
+  val_freq: !!float 1667      # 每 5% 训练进度验证一次，共 20 次
   save_img: false
   rgb2bgr: true
   use_image: false
@@ -85,7 +88,7 @@ val:
 
 logger:
   print_freq: 40
-  save_checkpoint_freq: !!float 400     # ~50 次存档（total_iter/50）
+  save_checkpoint_freq: !!float 1667    # 与验证频率同步
   use_tb_logger: true
   wandb:
     project: ~
