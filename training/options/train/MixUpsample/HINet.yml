@@ -1,4 +1,4 @@
-name: HINet-MixUpsample-Controlled-S42
+name: HINet-MixUpsample-Controlled-S42-4090
 model_type: ImageCleanModel
 scale: 1
 num_gpu: 1
@@ -16,10 +16,10 @@ datasets:
     geometric_augs: true
     gt_size: 256
     use_shuffle: true
-    num_worker_per_gpu: 1
-    batch_size_per_gpu: 2
-    mini_batch_sizes: [2]
-    iters: [100000]
+    num_worker_per_gpu: 8
+    batch_size_per_gpu: 16
+    mini_batch_sizes: [16]
+    iters: [12500]
     gt_sizes: [256]
     dataset_enlarge_ratio: 1
     prefetch_mode: ~
@@ -46,21 +46,21 @@ path:
   resume_state: ~
 
 train:
-  total_iter: 100000
-  warmup_iter: 2000
+  total_iter: 12500
+  warmup_iter: 250
   use_grad_clip: true
   amp_dtype: bfloat16          # 受控基准统一使用 BF16
   grad_clip_max_norm: 1.0      # 五个模型统一梯度裁剪阈值
   scheduler:
     type: CosineAnnealingRestartCyclicLR
-    periods: [100000]
+    periods: [12500]
     restart_weights: [1]
     eta_mins: [!!float 1e-7]
   mixing_augs:
     mixup: false
   optim_g:
     type: AdamW
-    lr: !!float 2e-4
+    lr: !!float 5.66e-4         # 由 batch 2 按平方根规则缩放到 batch 16
     weight_decay: !!float 1e-4
     betas: [0.9, 0.999]
   pixel_opt:
@@ -69,7 +69,7 @@ train:
     reduction: mean
 
 val:
-  val_freq: !!float 5e3
+  val_freq: !!float 625
   save_img: false
   rgb2bgr: true
   use_image: false
@@ -85,8 +85,8 @@ val:
       test_y_channel: false
 
 logger:
-  print_freq: 200
-  save_checkpoint_freq: !!float 5e3
+  print_freq: 25
+  save_checkpoint_freq: !!float 625
   use_tb_logger: true
   wandb:
     project: ~
