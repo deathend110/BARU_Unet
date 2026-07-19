@@ -61,3 +61,8 @@ YAML 位于 `training/options/train/MixUpsample/`，共 6 个（HINet / KBNet_s 
 1. 将 `.py` 放入 `training/basicsr/models/archs/`，文件名必须以 `_arch.py` 结尾。
 2. `training/options/train/MixUpsample/` 下新增对应 YAML。
 3. 如引入新依赖，更新 `training/requirements.txt`。
+
+## 运行环境
+
+1. codex运行在windows，GPU 3050ti laptop 4GB
+2. 实际训练环境是服务器4090 24GB
