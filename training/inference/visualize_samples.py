@@ -43,7 +43,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description="MixUpsample 分层抽样推理可视化")
     parser.add_argument("--model", type=str, default="HINet",
-                        choices=["HINet", "KBNet_s", "NAFNet", "SCUNet", "MIRNet_v2"],
+                        choices=["HINet", "KBNet_s", "NAFNet", "SCUNet",
+                                 "MIRNetv2", "MIRNet_v2"],
                         help="模型名称（对应 options/test/MixUpsample/ 下的 YAML）")
     parser.add_argument("--checkpoint", type=str, required=True,
                         help="权重路径，如 experiments/XXX/models/net_g_latest.pth")
@@ -64,10 +65,12 @@ def parse_args():
 
 def load_network_from_yaml(model_name, checkpoint_path, device):
     """从测试 YAML 模板读取网络配置，构建网络并加载权重"""
-    yaml_path = TRAINING_DIR / "options/test/MixUpsample" / f"{model_name}.yml"
+    # MIRNet_v2 是历史 CLI 写法，配置文件统一使用 MIRNetv2.yml。
+    config_name = "MIRNetv2" if model_name == "MIRNet_v2" else model_name
+    yaml_path = TRAINING_DIR / "options/test/MixUpsample" / f"{config_name}.yml"
     if not yaml_path.exists():
-        # 尝试去掉 _v2 后缀
-        yaml_path = TRAINING_DIR / "options/test/MixUpsample" / f"{model_name.replace('_v2', '')}.yml"
+        raise FileNotFoundError(
+            f"找不到模型 {model_name} 的测试配置: {yaml_path}")
 
     with open(yaml_path, "r", encoding="utf-8") as f:
         # 先读取纯文本，替换 {SEED} 占位符

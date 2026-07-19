@@ -21,7 +21,7 @@ network_g:
   dim: 64
 
 path:
-  pretrain_network_g: ../experiments/SCUNet-MixUpsample-Controlled-{SEED}-4090/models/net_g_latest.pth
+  pretrain_network_g: experiments/SCUNet-MixUpsample-Controlled-S{SEED}-4090/models/net_g_latest.pth
   strict_load_g: true
 
 val:

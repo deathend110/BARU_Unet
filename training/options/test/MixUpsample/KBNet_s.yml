@@ -25,7 +25,7 @@ network_g:
   ffn_scale: 1.5
 
 path:
-  pretrain_network_g: ../experiments/KBNet_s-MixUpsample-Controlled-{SEED}/models/net_g_latest.pth
+  pretrain_network_g: experiments/KBNet_s-MixUpsample-Controlled-S{SEED}/models/net_g_latest.pth
   strict_load_g: true
 
 val:

@@ -156,10 +156,11 @@ bash options/test/MixUpsample/run_all_seeds.sh
 脚本执行流程：
 1. 复制模板 YAML → 替换 `{SEED}` 为实际数值 → 生成临时 YAML
 2. 调用 `python basicsr/test.py -opt 临时文件`
-3. 从日志提取 PSNR / SSIM → 追加到汇总 CSV
+3. 从 `training/results/` 日志提取 PSNR / SSIM → 追加到汇总 CSV
 4. 清理临时 YAML
 
-汇总 CSV 生成在 `training/experiments/test_summary_日期.csv`。
+汇总 CSV 生成在 `training/experiments/test_summary_日期.csv`，包含 `Status` 和
+`Error` 字段。单项失败不会中断后续测试，但脚本最终会返回非零状态。
 
 ### 单模型单 seed 测试
 
@@ -178,7 +179,8 @@ python basicsr/test.py -opt temp_HINet_S42.yml
 rm temp_HINet_S42.yml
 ```
 
-测试结果输出到 `experiments/test_模型名-MixUpsample-Seed/log/`。
+测试结果和框架日志输出到 `results/test_模型名-MixUpsample-Seed/`；批量脚本的
+逐项控制台日志输出到 `results/batch_test_logs_日期/`。
 
 ### 测试配置参数
 

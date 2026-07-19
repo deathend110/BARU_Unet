@@ -28,7 +28,7 @@ network_g:
   bias: false
 
 path:
-  pretrain_network_g: ../experiments/MIRNetv2-MixUpsample-Controlled-{SEED}/models/net_g_latest.pth
+  pretrain_network_g: experiments/MIRNetv2-MixUpsample-Controlled-S{SEED}/models/net_g_latest.pth
   strict_load_g: true
 
 val:
