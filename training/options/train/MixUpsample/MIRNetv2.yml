@@ -65,7 +65,7 @@ train:
     mixup: false
   optim_g:
     type: AdamW
-    lr: !!float 5.66e-4       # sqrt 缩放：8e-4 × √(4/8)
+    lr: !!float 2e-4       # 由于训练梯度爆炸了，缩小学习率
     weight_decay: !!float 1e-4
     betas: [0.9, 0.999]
   pixel_opt:
