@@ -16,6 +16,7 @@ BARU_Unet/
 │   │   ├── utils/          ← 工具函数
 │   │   └── metrics/        ← 评估指标
 │   ├── options/train/MixUpsample/  ← 训练 YAML 配置
+│   ├── options/test/MixUpsample/   ← 测试 YAML 模板
 │   ├── requirements.txt
 │   ├── setup.py
 │   └── VERSION
@@ -122,6 +123,70 @@ wait
 ### 自动恢复
 
 检测到 `experiments/实验名/training_states/` 后自动 resume，无需额外参数。
+
+---
+
+## 测试
+
+使用 `basicsr/test.py` 在 MixUpsample 测试集上批量评估 PSNR / SSIM。
+
+### 测试 YAML 模板
+
+每个模型对应一个 YAML 模板，位于 `options/test/MixUpsample/`。其 `pretrain_network_g` 路径和 `name` 字段使用 `{SEED}` 占位符，运行时替换为实际 seed：
+
+```text
+options/test/MixUpsample/
+├── HINet.yml
+├── KBNet_s.yml
+├── NAFNet.yml
+├── SCUNet.yml
+├── MIRNetv2.yml
+└── run_all_seeds.sh          ← 批量遍历脚本
+```
+
+### 批量测试（推荐）
+
+遍历 5 个模型 × 5 个 seed（42~46），自动输出汇总 CSV：
+
+```bash
+cd training
+bash options/test/MixUpsample/run_all_seeds.sh
+```
+
+脚本执行流程：
+1. 复制模板 YAML → 替换 `{SEED}` 为实际数值 → 生成临时 YAML
+2. 调用 `python basicsr/test.py -opt 临时文件`
+3. 从日志提取 PSNR / SSIM → 追加到汇总 CSV
+4. 清理临时 YAML
+
+汇总 CSV 生成在 `training/experiments/test_summary_日期.csv`。
+
+### 单模型单 seed 测试
+
+手动替换 seed 后运行：
+
+```bash
+cd training
+
+# 替换 {SEED} 为 42，生成临时 YAML
+sed "s/{SEED}/42/g" options/test/MixUpsample/HINet.yml > temp_HINet_S42.yml
+
+# 执行测试
+python basicsr/test.py -opt temp_HINet_S42.yml
+
+# 清理临时文件
+rm temp_HINet_S42.yml
+```
+
+测试结果输出到 `experiments/test_模型名-MixUpsample-Seed/log/`。
+
+### 测试配置参数
+
+| 项 | 说明 |
+|---|---|
+| `manual_seed` | 固定 42（推理不依赖随机种子） |
+| `val.save_img` | 设为 `true` 可保存复原结果图到 visualization 目录 |
+| `val.metrics` | PSNR + SSIM，`crop_border: 0`, `test_y_channel: false` |
 
 ---
 
@@ -264,7 +329,7 @@ with torch.no_grad():
 
 ---
 
-## YAML 配置位于
+## 训练 YAML 配置
 
 ```
 training/options/train/MixUpsample/
@@ -274,4 +339,16 @@ training/options/train/MixUpsample/
 ├── MIRNetv2.yml
 ├── NAFNet.yml
 └── SCUNet.yml
+```
+
+## 测试 YAML 配置
+
+```
+training/options/test/MixUpsample/
+├── HINet.yml
+├── KBNet_s.yml
+├── NAFNet.yml
+├── SCUNet.yml
+├── MIRNetv2.yml
+└── run_all_seeds.sh          ← 批量遍历脚本
 ```

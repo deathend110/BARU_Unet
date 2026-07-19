@@ -1,0 +1,44 @@
+name: test_KBNet_s-MixUpsample-{SEED}
+model_type: ImageCleanModel
+scale: 1
+num_gpu: 1
+manual_seed: 42
+
+datasets:
+  test:
+    name: MixUpsample_test
+    type: Dataset_PairedImage
+    dataroot_gt: ../data/MixUpsample_Dataset_R2A2_256/test/H
+    dataroot_lq: ../data/MixUpsample_Dataset_R2A2_256/test/L
+    io_backend:
+      type: disk
+    pair_by_index: true
+
+network_g:
+  type: KBNet_s
+  img_channel: 3
+  width: 16
+  middle_blk_num: 12
+  enc_blk_nums: [2, 2, 4, 8]
+  dec_blk_nums: [2, 2, 2, 2]
+  lightweight: true
+  ffn_scale: 1.5
+
+path:
+  pretrain_network_g: ../experiments/KBNet_s-MixUpsample-Controlled-{SEED}/models/net_g_latest.pth
+  strict_load_g: true
+
+val:
+  save_img: false
+  rgb2bgr: true
+  use_image: false
+  max_minibatch: 8
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false

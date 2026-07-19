@@ -1,0 +1,40 @@
+name: test_SCUNet-MixUpsample-{SEED}
+model_type: ImageCleanModel
+scale: 1
+num_gpu: 1
+manual_seed: 42
+
+datasets:
+  test:
+    name: MixUpsample_test
+    type: Dataset_PairedImage
+    dataroot_gt: ../data/MixUpsample_Dataset_R2A2_256/test/H
+    dataroot_lq: ../data/MixUpsample_Dataset_R2A2_256/test/L
+    io_backend:
+      type: disk
+    pair_by_index: true
+
+network_g:
+  type: SCUNet
+  in_nc: 3
+  config: [3, 3, 3, 3, 3, 3, 3]
+  dim: 64
+
+path:
+  pretrain_network_g: ../experiments/SCUNet-MixUpsample-Controlled-{SEED}-4090/models/net_g_latest.pth
+  strict_load_g: true
+
+val:
+  save_img: false
+  rgb2bgr: true
+  use_image: false
+  max_minibatch: 8
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: false
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: false
