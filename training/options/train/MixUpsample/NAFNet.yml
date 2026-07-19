@@ -2,7 +2,7 @@ name: NAFNet-MixUpsample-Controlled-S43-4090
 model_type: ImageCleanModel
 scale: 1
 num_gpu: 1
-manual_seed: 43
+manual_seed: 44
 
 datasets:
   train:
