@@ -1,4 +1,4 @@
-name: MIRNetv2-MixUpsample-Controlled-S43
+name: MIRNetv2-MixUpsample-Controlled-S44
 model_type: ImageCleanModel
 scale: 1
 num_gpu: 1

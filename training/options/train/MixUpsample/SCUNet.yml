@@ -1,4 +1,4 @@
-name: SCUNet-MixUpsample-Controlled-S43-4090
+name: SCUNet-MixUpsample-Controlled-S44-4090
 model_type: ImageCleanModel
 scale: 1
 num_gpu: 1

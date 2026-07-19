@@ -1,4 +1,4 @@
-name: KBNet_s-MixUpsample-Controlled-S43
+name: KBNet_s-MixUpsample-Controlled-S44
 model_type: ImageCleanModel
 scale: 1
 num_gpu: 1
