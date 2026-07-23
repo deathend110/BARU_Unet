@@ -1,8 +1,8 @@
-name: SCUNet-MixUpsample-Controlled-S45-4090
+name: SCUNet-MixUpsample-Controlled-S46-4090
 model_type: ImageCleanModel
 scale: 1
 num_gpu: 1
-manual_seed: 45
+manual_seed: 46
 
 datasets:
   train:

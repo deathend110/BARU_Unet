@@ -1,8 +1,8 @@
-name: MIRNetv2-MixUpsample-Controlled-S45
+name: MIRNetv2-MixUpsample-Controlled-S46
 model_type: ImageCleanModel
 scale: 1
 num_gpu: 1
-manual_seed: 45
+manual_seed: 46
 
 datasets:
   train:
