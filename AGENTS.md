@@ -40,7 +40,7 @@ cd training
 python -m basicsr.train -opt options/train/MixUpsample/HINet.yml
 ```
 
-YAML 位于 `training/options/train/MixUpsample/`，共 6 个（HINet / KBNet_s / KBNet_l / MIRNetv2 / NAFNet / SCUNet）。
+YAML 位于 `training/options/train/MixUpsample/`，共 5 个（HINet / KBNet_s / MIRNetv2 / NAFNet / SCUNet）。
 
 关键细节：
 - **Arch 自动注册**：`basicsr/models/archs/*_arch.py` 放进去即可，无需手动 import。
